@@ -1,0 +1,43 @@
+String archiveJarName="${project.name}-${project.version}.jar"
+File projectBuildDir=file("${project.buildDir}/install/${project.name}")
+File resourcesDir=file("${project.buildDir}/install/${project.name}/resources")
+File projectRootDir=file("${project.projectDir}")
+
+task distPropertiesCopyToBuildDir(type: Copy) {
+    description 'Copy the resources to Springboot build target'
+    from('src/dist')
+    into(projectBuildDir)
+    filter {
+        line -> line.replace('@jarname@', archiveJarName)
+    }
+}
+
+task distPropertiesCopyToProjectDir(type: Copy) {
+    description 'Copy the resources to root project'
+    from('src/dist')
+    into(projectRootDir)
+    filter {
+        line -> line.replace('@jarname@', archiveJarName)
+    }
+}
+
+
+task applicationPropertiesCopyToBuildDir(type: Copy) {
+    description 'Copy Application Properties of SpringBoot to Springboot build target'
+    from('src/main/resources')
+    into(resourcesDir)
+}
+
+task cleanTemporaryResources(type: Copy) {
+    description 'Clean Temporary resources JPOS Project'
+    delete 'bin', 'log', 'cfg'
+}
+
+bootJar {
+    destinationDirectory=projectBuildDir
+}
+
+bootJar.dependsOn distPropertiesCopyToBuildDir
+bootJar.dependsOn applicationPropertiesCopyToBuildDir
+bootRun.dependsOn distPropertiesCopyToProjectDir
+clean.dependsOn cleanTemporaryResources
